@@ -34,8 +34,7 @@ namespace RegistrationAndLogin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Registration([Bind(Exclude = "IsEmailVerified,ActivationCode")] User user)
-        {
-            // dummy comment 
+        { 
             bool Status = false;
             string message = "";
             //
