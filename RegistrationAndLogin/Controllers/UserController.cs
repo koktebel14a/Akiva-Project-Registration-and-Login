@@ -15,12 +15,14 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Linq.Expressions;
 using System.Text;
+using RegistrationAndLogin.Models.Extended;
 
 namespace RegistrationAndLogin.Controllers
 {
     public class UserController : Controller
     {
 
+        public PlayFabManager playFabManager = new PlayFabManager();
 
         // GET: User
 
@@ -28,7 +30,6 @@ namespace RegistrationAndLogin.Controllers
         [HttpGet]
         public ActionResult Registration()
         {
-
             return View();
         }
         [HttpPost]
@@ -203,6 +204,7 @@ namespace RegistrationAndLogin.Controllers
         [HttpGet]
         public ActionResult Login()
         {
+            playFabManager.Init();
             return View();
         }
 
