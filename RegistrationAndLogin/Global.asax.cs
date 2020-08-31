@@ -10,6 +10,7 @@ using PlayFab.ClientModels;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Configuration;
+using RegistrationAndLogin.Models.Extended;
 
 namespace RegistrationAndLogin
 {
@@ -27,28 +28,10 @@ namespace RegistrationAndLogin
         private void InitPlayFab()
         {
             string playFabTitleId = ConfigurationManager.AppSettings["PlayFabTitleId"];
-            PlayFabSettings.staticSettings.TitleId = playFabTitleId;
-
             string devSecretKey = ConfigurationManager.AppSettings["DevSecretKey"];
-            PlayFabSettings.staticSettings.DeveloperSecretKey = devSecretKey;
 
-            var request = new LoginWithCustomIDRequest { CustomId = "DCC1CC93ABB57DE4", CreateAccount = true };
-            var loginTask = PlayFabClientAPI.LoginWithCustomIDAsync(request);
-            OnLoginComplete(loginTask);
-        }
-
-        private static void OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
-        {
-            var apiError = taskResult.Result.Error;
-            var apiResult = taskResult.Result.Result;
-
-            if (apiError != null)
-            {
-                Console.ForegroundColor = ConsoleColor.Red; 
-                Console.WriteLine("PlayFab LoginWithCustomIDAsync failed.  :(");
-                Console.WriteLine(PlayFabUtil.GenerateErrorReport(apiError));
-                Console.ForegroundColor = ConsoleColor.Gray; // Reset to normal
-            }
+            PlayFabManager playFabManager = PlayFabManager.GetInstance;
+            playFabManager.Init(playFabTitleId, devSecretKey, "DCC1CC93ABB57DE4");
         }
     }
 }

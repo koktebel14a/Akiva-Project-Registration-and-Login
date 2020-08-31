@@ -21,13 +21,13 @@ namespace RegistrationAndLogin.Controllers
 {
     public class UserController : Controller
     {
+         PlayFabManager playFabManager = PlayFabManager.GetInstance;
 
-        public PlayFabManager playFabManager = new PlayFabManager();
 
-        // GET: User
+// GET: User
 
-        //Registration Action
-        [HttpGet]
+//Registration Action
+[HttpGet]
         public ActionResult Registration()
         {
             return View();
@@ -198,13 +198,13 @@ namespace RegistrationAndLogin.Controllers
             //}
             ViewBag.Status = Status;
             return View();
+
         }
 
         //Login 
         [HttpGet]
         public ActionResult Login()
         {
-            playFabManager.Init();
             return View();
         }
 
