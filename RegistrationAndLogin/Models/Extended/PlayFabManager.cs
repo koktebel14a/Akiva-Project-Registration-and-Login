@@ -48,6 +48,72 @@ namespace RegistrationAndLogin.Models.Extended
             OnLoginComplete(loginTask);
         }
 
+        public string RegisterUser(User user)
+        {
+            var registerRequest = new RegisterPlayFabUserRequest()
+            {
+                TitleId = TitleId,
+                RequireBothUsernameAndEmail = true,
+                Username = user.FirstName,
+                Password = user.Password,
+                Email = user.EmailID
+            };
+            Task<PlayFabResult<RegisterPlayFabUserResult>> taskResult = PlayFabClientAPI.RegisterPlayFabUserAsync(registerRequest);
+            return OnRegisterComplete(taskResult);
+        }
+
+        public bool UpdateUserData(Dictionary<string, string> data)
+        {
+            var request = new UpdateUserDataRequest()
+            {
+                Data = data
+            };
+
+            var updateResult = PlayFabClientAPI.UpdateUserDataAsync(request);
+            return OnUpdatePlayerDataComplete(updateResult);
+        }
+        private static bool OnUpdatePlayerDataComplete(Task<PlayFabResult<UpdateUserDataResult>> taskResult)
+        {
+            var apiError = taskResult.Result.Error;
+            var apiResult = taskResult.Result.Result;
+
+            if (apiError != null)
+            {
+                if (apiError.ErrorMessage == "User not found")
+                {
+                    return false;
+                }
+                // else - we have a serious problem -something went wrong
+            }
+            else if (apiResult != null)
+            {
+                return true;
+            }
+
+            return true;
+        }
+
+        private string OnRegisterComplete(Task<PlayFabResult<RegisterPlayFabUserResult>> taskResult)
+        {
+            var apiError = taskResult.Result.Error;
+            var apiResult = taskResult.Result.Result;
+
+            if (apiError != null)
+            {
+                // add logging
+                Console.ForegroundColor = ConsoleColor.Red; // Make the error more visible
+                Console.WriteLine("Something went wrong ...  :(");
+                Console.WriteLine("Here's some debug information:");
+                Console.WriteLine(PlayFabUtil.GenerateErrorReport(apiError));
+                Console.ForegroundColor = ConsoleColor.Gray; // Reset to normal
+            }
+            else if (apiResult != null)
+            {
+                return taskResult.Result.Result.PlayFabId;
+            }
+            return null;
+        }
+
         private static bool OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
         {
             var apiError = taskResult.Result.Error;

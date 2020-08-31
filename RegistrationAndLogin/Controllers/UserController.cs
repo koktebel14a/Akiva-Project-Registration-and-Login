@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using RegistrationAndLogin.Models;
@@ -10,11 +9,8 @@ using System.Web.Security;
 using System.Configuration;
 using PlayFab.ClientModels;
 using PlayFab;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
-using System.Linq.Expressions;
-using System.Text;
 using RegistrationAndLogin.Models.Extended;
 
 namespace RegistrationAndLogin.Controllers
@@ -72,25 +68,19 @@ namespace RegistrationAndLogin.Controllers
                     Password = user.Password,
                     Email = user.EmailID
                 };
-                Task<PlayFabResult<RegisterPlayFabUserResult>> taskResult = PlayFabClientAPI.RegisterPlayFabUserAsync(registerRequest);
-                string playFabId = OnRegisterComplete(taskResult);
-      
+
+                string playFabId = playFabManager.RegisterUser(user);
+
                 if (playFabId != null)
                 {
                     int dbIndex = InsertPlayerInDB(user);
 
-                    var request = new UpdateUserDataRequest()
-                    {
-                        Data = new Dictionary<string, string>() {
-                            {"password", user.ConfirmPassword},
-                            {"activationCode", user.ActivationCode.ToString()},
-                            {"emailVerified", "0"},
-                            {"dbIndex", dbIndex.ToString()},
-                        }
-                    };
-
-                    var updateResult = PlayFabClientAPI.UpdateUserDataAsync(request);
-                    OnUpdatePlayerDataComplete(updateResult);
+                    Dictionary<string, string> data = new Dictionary<string, string>() {
+                                                                {"activationCode", user.ActivationCode.ToString()},
+                                                                {"emailVerified", "0"},
+                                                                {"dbIndex", dbIndex.ToString()},
+                                                            };
+                    playFabManager.UpdateUserData(data);
                 }
 
                 #endregion
@@ -112,46 +102,6 @@ namespace RegistrationAndLogin.Controllers
             ViewBag.Status = Status;
             return View(user);
         }
-        private static bool OnUpdatePlayerDataComplete(Task<PlayFabResult<UpdateUserDataResult>> taskResult)
-        {
-            var apiError = taskResult.Result.Error;
-            var apiResult = taskResult.Result.Result;
-
-            if (apiError != null)
-            {
-                if (apiError.ErrorMessage == "User not found")
-                {
-                    return false;
-                }
-                // else - we have a serious problem -something went wrong
-            }
-            else if (apiResult != null)
-            {
-                return true;
-            }
-
-            return true;
-        }
-
-        private static string OnRegisterComplete(Task<PlayFabResult<RegisterPlayFabUserResult>> taskResult)
-        {
-            var apiError = taskResult.Result.Error;
-            var apiResult = taskResult.Result.Result;
-
-            if (apiError != null)
-            {
-                Console.ForegroundColor = ConsoleColor.Red; // Make the error more visible
-                Console.WriteLine("Something went wrong ...  :(");
-                Console.WriteLine("Here's some debug information:");
-                Console.WriteLine(PlayFabUtil.GenerateErrorReport(apiError));
-                Console.ForegroundColor = ConsoleColor.Gray; // Reset to normal
-            }
-            else if (apiResult != null)
-            {
-                return taskResult.Result.Result.PlayFabId;
-            }
-            return null;
-        }
 
         //Verify Account  
 
@@ -168,37 +118,12 @@ namespace RegistrationAndLogin.Controllers
             Status = OnGetAccountInfoRequestComplete(taskResult);
 
             //update emailVerified flag
-            var request = new UpdateUserDataRequest()
-            {
-                Data = new Dictionary<string, string>() {
-                            {"emailVerified", "1"},
-                        }
-            };
 
-            var updateResult = PlayFabClientAPI.UpdateUserDataAsync(request);
-            Status = OnUpdatePlayerDataComplete(updateResult);
-
-
-            // Playfab here
-            //using (MyDatabaseEntities dc = new MyDatabaseEntities())
-            //{
-            //    dc.Configuration.ValidateOnSaveEnabled = false; // This line I have added here to avoid 
-            //                                                    // Confirm password does not match issue on save changes
-            //    var v = dc.Users.Where(a => a.ActivationCode == new Guid(id)).FirstOrDefault();
-            //    if (v != null)
-            //    {
-            //        v.IsEmailVerified = true;
-            //        dc.SaveChanges();
-            //        Status = true;
-            //    }
-            //    else
-            //    {
-            //        ViewBag.Message = "Invalid Request";
-            //    }
-            //}
+            Status= playFabManager.UpdateUserData(new Dictionary<string, string>() {
+                                                    {"emailVerified", "1"},
+                                                });
             ViewBag.Status = Status;
             return View();
-
         }
 
         //Login 
