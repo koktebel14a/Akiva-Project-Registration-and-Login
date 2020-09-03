@@ -34,7 +34,7 @@ namespace RegistrationAndLogin.Models
 
         [Display(Name = "Spectrum diagnosis")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Spectrum diagnosis is required")]
-        public string SpectrumDiagnosys { get; set; }
+        public string SpectrumDiagnosis { get; set; }
 
         [Display(Name = "Email")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required")]
@@ -45,10 +45,10 @@ namespace RegistrationAndLogin.Models
         [Required(AllowEmptyStrings = false, ErrorMessage = "Gender is required")]
         public string Gender { get; set; }
 
-        [Display(Name = "Date of birth")]
-        [DataType(DataType.Date)]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:MM/dd/yyyy}")]
-        public DateTime DateOfBirth { get; set; }
+        //[Display(Name = "Date of birth")]
+        //[DataType(DataType.Date)]
+        //[DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:MM/dd/yyyy}")]
+        //public DateTime DateOfBirth { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]

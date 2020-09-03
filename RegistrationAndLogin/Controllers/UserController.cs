@@ -218,15 +218,6 @@ namespace RegistrationAndLogin.Controllers
         {
             int modified = 0;
             SqlConnection connection = null;
-            var today = DateTime.Today;
-            // Calculate user age
-            var age = today.Year - user.DateOfBirth.Year;
-
-            // Go back to the year the person was born in case of a leap year
-            if (user.DateOfBirth.Date > today.AddYears(-age))
-            {
-                age--;
-            }
 
             try
             {
@@ -244,7 +235,7 @@ namespace RegistrationAndLogin.Controllers
                     SqlCommand command = new SqlCommand(query, connection);
                     command.Parameters.AddWithValue("@ChildName", user.ChildName);
                     command.Parameters.AddWithValue("@ChildGenderID", genderId);
-                    command.Parameters.AddWithValue("@ChildAge", age.ToString());
+                    command.Parameters.AddWithValue("@ChildAge", user.Age.ToString());
                     command.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
 
                     //getIdentity
