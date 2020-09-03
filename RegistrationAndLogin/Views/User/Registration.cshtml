@@ -29,6 +29,13 @@ else
         </div>
     </div>
     <div class="form-group">
+        @Html.LabelFor(model => model.Age, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Age, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Age, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
         @Html.LabelFor(model => model.SpectrumDiagnosys, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
             @Html.EditorFor(model => model.SpectrumDiagnosys, new { htmlAttributes = new { @class = "form-control" } })
@@ -56,10 +63,10 @@ else
 
         </div>
         @*<div class="col-md-10">
-            @Html.DropDownListFor(model => model.StudentGender,
-            new SelectList(Enum.GetValues(typeof(RegistrationAndLogin.Models.Gender))),
-            new { @class = "form-control" })
-        </div>*@
+                @Html.DropDownListFor(model => model.StudentGender,
+                new SelectList(Enum.GetValues(typeof(RegistrationAndLogin.Models.Gender))),
+                new { @class = "form-control" })
+            </div>*@
     </div>
 
     <div class="form-group">

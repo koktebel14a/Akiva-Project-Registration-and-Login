@@ -23,20 +23,26 @@ namespace RegistrationAndLogin.Models
     {
 
         [Display(Name = "Child Name")]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "First name required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Child name is required")]
         public string ChildName { get; set; }
 
+        [Display(Name = "Age")]
+        [Range(1, 18, ErrorMessage = "Child age should be a number between 1 and 18")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Age is required")]
+        public string Age { get; set; }
+
+
         [Display(Name = "Spectrum diagnosis")]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Last name required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Spectrum diagnosis is required")]
         public string SpectrumDiagnosys { get; set; }
 
         [Display(Name = "Email")]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Email required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required")]
         [DataType(DataType.EmailAddress)]
         public string EmailID { get; set; }
 
         [Display(Name = "Gender")]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Gender required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Gender is required")]
         public string Gender { get; set; }
 
         [Display(Name = "Date of birth")]
