@@ -22,13 +22,13 @@ namespace RegistrationAndLogin.Models
     public class User
     {
 
-        [Display(Name = "First Name")]
+        [Display(Name = "Child Name")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "First name required")]
-        public string FirstName { get; set; }
+        public string ChildName { get; set; }
 
-        [Display(Name = "Last Name")]
+        [Display(Name = "Spectrum diagnosis")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Last name required")]
-        public string LastName { get; set; }
+        public string SpectrumDiagnosys { get; set; }
 
         [Display(Name = "Email")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email required")]
@@ -37,10 +37,7 @@ namespace RegistrationAndLogin.Models
 
         [Display(Name = "Gender")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Gender required")]
-        //0 - Undefined
-        //1 - Male
-        //2 - Female
-        public Gender StudentGender { get; set; }
+        public string Gender { get; set; }
 
         [Display(Name = "Date of birth")]
         [DataType(DataType.Date)]

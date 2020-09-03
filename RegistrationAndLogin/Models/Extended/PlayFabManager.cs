@@ -16,7 +16,6 @@ namespace RegistrationAndLogin.Models.Extended
         static private string DeveloperSecretKey { get; set; }
         static private string CustomId { get; set; }
 
-        public int i;
         private static int counter = 0;
         private static PlayFabManager instance = null;
         public static PlayFabManager GetInstance
@@ -54,7 +53,7 @@ namespace RegistrationAndLogin.Models.Extended
             {
                 TitleId = TitleId,
                 RequireBothUsernameAndEmail = true,
-                Username = user.FirstName,
+                Username = user.ChildName,
                 Password = user.Password,
                 Email = user.EmailID
             };
@@ -72,7 +71,7 @@ namespace RegistrationAndLogin.Models.Extended
             var updateResult = PlayFabClientAPI.UpdateUserDataAsync(request);
             return OnUpdatePlayerDataComplete(updateResult);
         }
-        private static bool OnUpdatePlayerDataComplete(Task<PlayFabResult<UpdateUserDataResult>> taskResult)
+        private bool OnUpdatePlayerDataComplete(Task<PlayFabResult<UpdateUserDataResult>> taskResult)
         {
             var apiError = taskResult.Result.Error;
             var apiResult = taskResult.Result.Result;
@@ -114,7 +113,7 @@ namespace RegistrationAndLogin.Models.Extended
             return null;
         }
 
-        private static bool OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
+        private bool OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
         {
             var apiError = taskResult.Result.Error;
             var apiResult = taskResult.Result.Result;
@@ -132,8 +131,68 @@ namespace RegistrationAndLogin.Models.Extended
             return retVal;
         }
 
+        public string FindUserByEmail(string email)
+        {
+            var accountInfoRequest = new GetAccountInfoRequest()
+            {
+                Email = email
+            };
+            var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
+            return OnGetPlayFabIDRequestComplete(taskResult);
+        }
 
+        private string OnGetPlayFabIDRequestComplete(Task<PlayFabResult<GetAccountInfoResult>> taskResult)
+        {
+            var apiError = taskResult.Result.Error;
+            var apiResult = taskResult.Result.Result;
 
+            if (apiError != null)
+            {
+                if (apiError.ErrorMessage == "User not found")
+                {
+                    return null;
+                }
+                // else - we have a serious problem -something went wrong
+            }
+            else if (apiResult != null)
+            {
+                return apiResult.AccountInfo.PlayFabId;
+            }
+
+            return null;
+        }
+
+        public bool GetAccountInfo(string email)
+        {
+            var accountInfoRequest = new GetAccountInfoRequest()
+            {
+                Email = email
+            };
+            var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
+            return OnGetAccountInfoRequestComplete(taskResult);
+        }
+        private static bool OnGetAccountInfoRequestComplete(Task<PlayFabResult<GetAccountInfoResult>> taskResult)
+        {
+            var apiError = taskResult.Result.Error;
+            var apiResult = taskResult.Result.Result;
+
+            bool retVal = true;
+
+            if (apiError != null)
+            {
+                if (apiError.ErrorMessage == "User not found")
+                {
+                    return false;
+                }
+                // else - we have a serious problem -something went wrong
+            }
+            else if (apiResult != null)
+            {
+                return true;
+            }
+
+            return retVal;
+        }
     }
 
 }

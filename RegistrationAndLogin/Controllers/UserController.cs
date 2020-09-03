@@ -7,9 +7,6 @@ using System.Net.Mail;
 using System.Net;
 using System.Web.Security;
 using System.Configuration;
-using PlayFab.ClientModels;
-using PlayFab;
-using System.Threading.Tasks;
 using System.Data.SqlClient;
 using RegistrationAndLogin.Models.Extended;
 
@@ -59,15 +56,6 @@ namespace RegistrationAndLogin.Controllers
                 user.IsEmailVerified = false;
 
                 #region Save to PlayFab
-                PlayFabSettings.staticSettings.TitleId = "AF64B";
-                var registerRequest = new RegisterPlayFabUserRequest()
-                {
-                    TitleId = ConfigurationManager.AppSettings["PlayFabTitleId"],
-                    RequireBothUsernameAndEmail = true,
-                    Username = user.FirstName,
-                    Password = user.Password,
-                    Email = user.EmailID
-                };
 
                 string playFabId = playFabManager.RegisterUser(user);
 
@@ -80,7 +68,7 @@ namespace RegistrationAndLogin.Controllers
                                                                 {"emailVerified", "0"},
                                                                 {"dbIndex", dbIndex.ToString()},
                                                             };
-                    playFabManager.UpdateUserData(data);
+                    PlayFabManager.GetInstance.UpdateUserData(data);
                 }
 
                 #endregion
@@ -89,14 +77,14 @@ namespace RegistrationAndLogin.Controllers
                 SendVerificationLinkEmail(user.EmailID, playFabId);
                 
 
-                message = "Registration successfully done. Account activation link " +
+                message = "Registration successfull! Account activation link " +
                     " has been sent to your email: " + user.EmailID;
                 Status = true;
             }
-            else
-            {
-                message = "Invalid Request";
-            }
+            //else
+            //{
+            //    message = "Invalid Request";
+            //}
 
             ViewBag.Message = message;
             ViewBag.Status = Status;
@@ -110,16 +98,9 @@ namespace RegistrationAndLogin.Controllers
         {
             bool Status = false;
 
-            var accountInfoRequest = new GetAccountInfoRequest()
-            {
-                PlayFabId = playerID
-            };
-            var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
-            Status = OnGetAccountInfoRequestComplete(taskResult);
-
             //update emailVerified flag
 
-            Status= playFabManager.UpdateUserData(new Dictionary<string, string>() {
+            Status= PlayFabManager.GetInstance.UpdateUserData(new Dictionary<string, string>() {
                                                     {"emailVerified", "1"},
                                                 });
             ViewBag.Status = Status;
@@ -133,78 +114,11 @@ namespace RegistrationAndLogin.Controllers
             return View();
         }
 
-        [HttpGet]
-        public ActionResult DeleteTestUser()
-        {
-            string testUserEmail = ConfigurationManager.AppSettings["PlayFabTestUserEmail"];
-            string playFabID = FindPlayerByEmail(testUserEmail);
 
-            if (playFabID != null)
-            {
-                PlayFab.ServerModels.DeletePlayerRequest request = new PlayFab.ServerModels.DeletePlayerRequest()
-                {
-                    PlayFabId = playFabID
-                };
-
-                var taskResult = PlayFab.PlayFabServerAPI.DeletePlayerAsync(request);
-                OnDeletePlayerRequestComplete(taskResult);
-            }
-
-            return RedirectToAction("Login", "User");
-        }
-
-        private static bool OnDeletePlayerRequestComplete(Task<PlayFabResult<PlayFab.ServerModels.DeletePlayerResult>> taskResult)
-        {
-            var apiError = taskResult.Result.Error;
-            var apiResult = taskResult.Result.Result;
-
-            bool retVal = true;
-
-            if (apiError != null)
-            {
-                if (apiError.ErrorMessage == "User not found")
-                {
-                    return false;
-                }
-                // else - we have a serious problem -something went wrong
-            }
-            else if (apiResult != null)
-            {
-                return true;
-            }
-
-            return retVal;
-        }
 
         public static string FindPlayerByEmail(string email)
         {
-           var accountInfoRequest = new GetAccountInfoRequest()
-           {
-                    Email = email
-           };
-           var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
-           return OnGetPlayFabIDRequestComplete(taskResult);
-        }
-
-        private static string OnGetPlayFabIDRequestComplete(Task<PlayFabResult<GetAccountInfoResult>> taskResult)
-        {
-            var apiError = taskResult.Result.Error;
-            var apiResult = taskResult.Result.Result;
-
-            if (apiError != null)
-            {
-                if (apiError.ErrorMessage == "User not found")
-                {
-                    return null;
-                }
-                // else - we have a serious problem -something went wrong
-            }
-            else if (apiResult != null)
-            {
-                return apiResult.AccountInfo.PlayFabId;
-            }
-
-            return null;
+           return PlayFabManager.GetInstance.FindUserByEmail(email);
         }
 
         //Login POST
@@ -251,38 +165,12 @@ namespace RegistrationAndLogin.Controllers
         }
 
         [NonAction]
-        public bool emailExist(string emailID)
+        public bool emailExist(string email)
         {
-            var accountInfoRequest = new GetAccountInfoRequest()
-            {
-                Email = emailID
-            };
-            var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
-            return OnGetAccountInfoRequestComplete(taskResult);
+            return PlayFabManager.GetInstance.GetAccountInfo(email);
         }
 
-        private static bool OnGetAccountInfoRequestComplete(Task<PlayFabResult<GetAccountInfoResult>> taskResult)
-        {
-            var apiError = taskResult.Result.Error;
-            var apiResult = taskResult.Result.Result;
 
-            bool retVal = true;
-
-            if (apiError != null)
-            {
-                if (apiError.ErrorMessage == "User not found")
-                {
-                    return false;
-                }
-                // else - we have a serious problem -something went wrong
-            }
-            else if (apiResult != null)
-            {
-                return true;
-            }
-
-            return retVal;
-        }
 
         [NonAction]
         public void SendVerificationLinkEmail(string emailID, string activationCode)
@@ -324,9 +212,6 @@ namespace RegistrationAndLogin.Controllers
                 IsBodyHtml = true
             })
             smtp.Send(message);
-
-
-
         }
 
         private int InsertPlayerInDB(User user)
@@ -345,6 +230,11 @@ namespace RegistrationAndLogin.Controllers
 
             try
             {
+                int genderId = 1;
+                if (user.Gender == "Female")
+                {
+                    genderId = 2;
+                }
                 string connectionString = ConfigurationManager.ConnectionStrings["AkivaWorldDbConnection"].ConnectionString;
                 using (connection = new SqlConnection(connectionString))
                 {
@@ -352,8 +242,8 @@ namespace RegistrationAndLogin.Controllers
                     String query = "INSERT INTO Users (ChildName,ChildGenderID, ChildAge, CreatedAt) VALUES (@ChildName,@ChildGenderID,@ChildAge, @CreatedAt)";
 
                     SqlCommand command = new SqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@ChildName", user.FirstName);
-                    command.Parameters.AddWithValue("@ChildGenderID", (int)user.StudentGender);
+                    command.Parameters.AddWithValue("@ChildName", user.ChildName);
+                    command.Parameters.AddWithValue("@ChildGenderID", genderId);
                     command.Parameters.AddWithValue("@ChildAge", age.ToString());
                     command.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
 
@@ -371,6 +261,49 @@ namespace RegistrationAndLogin.Controllers
             connection.Close();
             return modified;
         }
+
+        //[HttpGet]
+        //public ActionResult DeleteTestUser()
+        //{
+        //    string testUserEmail = ConfigurationManager.AppSettings["PlayFabTestUserEmail"];
+        //    string playFabID = FindPlayerByEmail(testUserEmail);
+
+        //    if (playFabID != null)
+        //    {
+        //        PlayFab.ServerModels.DeletePlayerRequest request = new PlayFab.ServerModels.DeletePlayerRequest()
+        //        {
+        //            PlayFabId = playFabID
+        //        };
+
+        //        var taskResult = PlayFab.PlayFabServerAPI.DeletePlayerAsync(request);
+        //        OnDeletePlayerRequestComplete(taskResult);
+        //    }
+
+        //    return RedirectToAction("Login", "User");
+        //}
+
+        //private static bool OnDeletePlayerRequestComplete(Task<PlayFabResult<PlayFab.ServerModels.DeletePlayerResult>> taskResult)
+        //{
+        //    var apiError = taskResult.Result.Error;
+        //    var apiResult = taskResult.Result.Result;
+
+        //    bool retVal = true;
+
+        //    if (apiError != null)
+        //    {
+        //        if (apiError.ErrorMessage == "User not found")
+        //        {
+        //            return false;
+        //        }
+        //        // else - we have a serious problem -something went wrong
+        //    }
+        //    else if (apiResult != null)
+        //    {
+        //        return true;
+        //    }
+
+        //    return retVal;
+        //}
 
     }
 
