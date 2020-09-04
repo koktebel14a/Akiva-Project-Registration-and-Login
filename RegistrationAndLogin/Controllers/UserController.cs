@@ -41,6 +41,7 @@ namespace RegistrationAndLogin.Controllers
                 if (emailExist(user.EmailID))
                 {
                     ModelState.AddModelError("Email Exists", "Sorry, this email already exists");
+                    ViewBag.Message = "Sorry, this email already exists";
                     return View(user);
                 }
                 #endregion
@@ -58,18 +59,21 @@ namespace RegistrationAndLogin.Controllers
                 #region Save to PlayFab
 
                 string playFabId = playFabManager.RegisterUser(user);
-
-                if (playFabId != null)
+                if (playFabId == null)
                 {
-                    int dbIndex = InsertPlayerInDB(user);
+                    ViewBag.Message = "There was a problem creating your account, please try again later";
+                    ViewBag.Status = false;
+                    return View(user);
+                }
 
-                    Dictionary<string, string> data = new Dictionary<string, string>() {
+                int dbIndex = InsertPlayerInDB(user);
+
+                Dictionary<string, string> data = new Dictionary<string, string>() {
                                                                 {"activationCode", user.ActivationCode.ToString()},
                                                                 {"emailVerified", "0"},
                                                                 {"dbIndex", dbIndex.ToString()},
                                                             };
-                    PlayFabManager.GetInstance.UpdateUserData(data);
-                }
+                PlayFabManager.GetInstance.UpdateUserData(data);
 
                 #endregion
 
@@ -178,20 +182,13 @@ namespace RegistrationAndLogin.Controllers
             var verifyUrl = "/User/VerifyAccount/" + activationCode;
             var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
 
-//            string adminEmail = ConfigurationManager.AppSettings["AdminEmail"];
-            string adminEmail = "ashapiro14a@gmail.com";
-            var fromEmail = new MailAddress(adminEmail, "Akiva Project");
-//            var toEmail = new MailAddress(emailID);
+            var fromEmail = new MailAddress(ConfigurationManager.AppSettings["AdminEmail"], "Akiva Project");
             var toEmail = new MailAddress("ashapiro14a@gmail.com");
+            string subject = "Your Akiva Project account was successfully created!<br>";
 
-            //string adminEmailPassword = ConfigurationManager.AppSettings["AdminEmailPassword"];
-            string adminEmailPassword = "take5take5";
-            var fromEmailPassword = adminEmailPassword; 
-            string subject = "Your Akiva Project account was successfully created!";
-
-            string body = "<br/><br/>We are excited to tell you that your Akiva Project account was" +
-                " successfully created. Please click on the below link to verify your account" +
-                " <br/><br/><a href='" + link + "'>" + link + "</a> ";
+            string body =   "<br/><br/>Your Akiva Project account was" +
+                            " successfully created. Please click on the below link to verify your account" +
+                            " <br/><br/><a href='" + link + "'>" + link + "</a> ";
 
             string snmpHost = ConfigurationManager.AppSettings["SNMPHost"];
             var smtp = new SmtpClient
@@ -199,9 +196,10 @@ namespace RegistrationAndLogin.Controllers
                 Host = snmpHost,
                 Port = 587,
                 EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
+                //                DeliveryMethod = SmtpDeliveryMethod.Network,
+                DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network,
                 UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(fromEmail.Address, fromEmailPassword)
+                Credentials = new NetworkCredential(fromEmail.Address, ConfigurationManager.AppSettings["AdminEmailPassword"])
 
             };
 

@@ -49,11 +49,16 @@ namespace RegistrationAndLogin.Models.Extended
 
         public string RegisterUser(User user)
         {
+            string userName = user.ChildName;
+            if (userName.Length < 6)
+            {
+                userName += "AkivaProject";
+            }
             var registerRequest = new RegisterPlayFabUserRequest()
             {
                 TitleId = TitleId,
                 RequireBothUsernameAndEmail = true,
-                Username = user.ChildName,
+                Username = userName,
                 Password = user.Password,
                 Email = user.EmailID
             };

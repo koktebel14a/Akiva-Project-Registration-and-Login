@@ -102,7 +102,7 @@ else
             </div>
         </div>
         <div class="alert alert-success">
-            <strong>All fields are required</strong>@ViewBag.Message
+            <strong>All fields are required</strong>
         </div>
 
         <div class="form-group">
@@ -111,12 +111,12 @@ else
             </div>
         </div>
     </div>
-    @*if (ViewBag.Message != null)
+    if (ViewBag.Message == "Sorry, this email already exists")
         {
             <div class="alert alert-danger">
-                <strong>Error!</strong>@ViewBag.Message
+                <strong>@ViewBag.Message</strong>
             </div>
-        }*@
+        }
     }
     }
 
