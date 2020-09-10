@@ -15,8 +15,8 @@ namespace RegistrationAndLogin.Models.Extended
         static private string TitleId { get; set; }
         static private string DeveloperSecretKey { get; set; }
         static private string CustomId { get; set; }
-
         private static int counter = 0;
+
         private static PlayFabManager instance = null;
         public static PlayFabManager GetInstance
         {
@@ -47,18 +47,13 @@ namespace RegistrationAndLogin.Models.Extended
             OnLoginComplete(loginTask);
         }
 
-        public string RegisterUser(User user)
+        public PlayFabStatus RegisterUser(User user)
         {
-            string userName = user.ChildName;
-            if (userName.Length < 6)
-            {
-                userName += "AkivaProject";
-            }
             var registerRequest = new RegisterPlayFabUserRequest()
             {
                 TitleId = TitleId,
                 RequireBothUsernameAndEmail = true,
-                Username = userName,
+                Username = user.UserName,
                 Password = user.Password,
                 Email = user.EmailID
             };
@@ -97,13 +92,18 @@ namespace RegistrationAndLogin.Models.Extended
             return true;
         }
 
-        private string OnRegisterComplete(Task<PlayFabResult<RegisterPlayFabUserResult>> taskResult)
+        private PlayFabStatus OnRegisterComplete(Task<PlayFabResult<RegisterPlayFabUserResult>> taskResult)
         {
+            PlayFabStatus status = new PlayFabStatus();
+
             var apiError = taskResult.Result.Error;
             var apiResult = taskResult.Result.Result;
 
             if (apiError != null)
             {
+                status.PlayFabId = null;
+                status.ErrorDetails = taskResult.Result.Error.ErrorDetails;
+
                 // add logging
                 Console.ForegroundColor = ConsoleColor.Red; // Make the error more visible
                 Console.WriteLine("Something went wrong ...  :(");
@@ -113,9 +113,12 @@ namespace RegistrationAndLogin.Models.Extended
             }
             else if (apiResult != null)
             {
-                return taskResult.Result.Result.PlayFabId;
+                status.PlayFabId = taskResult.Result.Result.PlayFabId;
+                status.ErrorDetails = null;
+
+//                return taskResult.Result.Result.PlayFabId;
             }
-            return null;
+            return status;
         }
 
         private bool OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
@@ -167,15 +170,46 @@ namespace RegistrationAndLogin.Models.Extended
             return null;
         }
 
-        public bool GetAccountInfo(string email)
+        public bool GetAccountInfo(User user)
         {
-            var accountInfoRequest = new GetAccountInfoRequest()
+            var accountInfoRequest = new GetAccountInfoRequest();
+
+            if (user.EmailID.Contains('@'))
             {
-                Email = email
-            };
+                accountInfoRequest.Email = user.EmailID;
+                accountInfoRequest.Username = user.UserName;
+            }
+            else
+            {
+                accountInfoRequest.Username = user.EmailID;
+            }
+
             var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
             return OnGetAccountInfoRequestComplete(taskResult);
         }
+
+        public bool GetAccountEmailVerifiedStatus(User user)
+        {
+            var accountInfoRequest = new GetAccountInfoRequest();
+
+            if (user.EmailID.Contains('@'))
+            {
+                accountInfoRequest.Email = user.EmailID;
+                accountInfoRequest.Username = user.UserName;
+            }
+            else
+            {
+                accountInfoRequest.Username = user.EmailID;
+            }
+
+            string verified  = "";
+            Dictionary<string, string> data = new Dictionary<string, string>() {
+                                                                {"emailVerified", "0"},
+                                                            };
+            var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest, verified, data);
+            return OnGetAccountInfoRequestComplete(taskResult);
+        }
+
         private static bool OnGetAccountInfoRequestComplete(Task<PlayFabResult<GetAccountInfoResult>> taskResult)
         {
             var apiError = taskResult.Result.Error;

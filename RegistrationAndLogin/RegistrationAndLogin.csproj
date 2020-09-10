@@ -145,6 +145,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Extended\PlayFabManager.cs" />
+    <Compile Include="Models\Extended\PlayFabStatus.cs" />
     <Compile Include="Models\Extended\User.cs" />
     <Compile Include="Models\UserLogin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

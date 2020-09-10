@@ -36,6 +36,9 @@ namespace RegistrationAndLogin.Models
         [Required(AllowEmptyStrings = false, ErrorMessage = "Spectrum diagnosis is required")]
         public string SpectrumDiagnosis { get; set; }
 
+        [Display(Name = "Username")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Username required")]
+        public string UserName { get; set; }
         [Display(Name = "Email")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required")]
         [DataType(DataType.EmailAddress)]

@@ -36,12 +36,12 @@ namespace RegistrationAndLogin.Controllers
             if (ModelState.IsValid)
             {
 
-                #region //Email is already Exist 
+                #region //Verify that user does not exist
 
-                if (emailExist(user.EmailID))
+                if (UserExists(user))
                 {
-                    ModelState.AddModelError("Email Exists", "Sorry, this email already exists");
-                    ViewBag.Message = "Sorry, this email already exists";
+                    ModelState.AddModelError("Email Exists", "Sorry, this username/email already exists");
+                    ViewBag.Message = "Sorry, this username/email already exists";
                     return View(user);
                 }
                 #endregion
@@ -58,8 +58,8 @@ namespace RegistrationAndLogin.Controllers
 
                 #region Save to PlayFab
 
-                string playFabId = playFabManager.RegisterUser(user);
-                if (playFabId == null)
+                PlayFabStatus status = playFabManager.RegisterUser(user);
+                if (status.PlayFabId == null)
                 {
                     ViewBag.Message = "There was a problem creating your account, please try again later";
                     ViewBag.Status = false;
@@ -78,7 +78,7 @@ namespace RegistrationAndLogin.Controllers
                 #endregion
 
 //                SendVerificationLinkEmail(user.EmailID, user.ActivationCode.ToString());
-                SendVerificationLinkEmail(user.EmailID, playFabId);
+                SendVerificationLinkEmail(user.EmailID, status.PlayFabId);
                 
 
                 message = "Registration successfull! Account activation link " +
@@ -130,9 +130,20 @@ namespace RegistrationAndLogin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserLogin login, string ReturnUrl = "")
         {
+            User tempUser = new User();
+            tempUser.EmailID = login.EmailID;
+            tempUser.UserName = null;
+
             string message = "";
-            if (emailExist(login.EmailID))
+
+            if (UserExists(tempUser))
             {
+                // check if account was verified
+                bool emailVerified = PlayFabManager.GetInstance.GetAccountEmailVerifiedStatus(tempUser);
+
+
+
+
                 int timeout = login.RememberMe ? 525600 : 20; // 525600 min = 1 year
                 var ticket = new FormsAuthenticationTicket(login.EmailID, login.RememberMe, timeout);
                 string encrypted = FormsAuthentication.Encrypt(ticket);
@@ -169,9 +180,9 @@ namespace RegistrationAndLogin.Controllers
         }
 
         [NonAction]
-        public bool emailExist(string email)
+        public bool UserExists(User user)
         {
-            return PlayFabManager.GetInstance.GetAccountInfo(email);
+            return PlayFabManager.GetInstance.GetAccountInfo(user);
         }
 
 
@@ -184,7 +195,7 @@ namespace RegistrationAndLogin.Controllers
 
             var fromEmail = new MailAddress(ConfigurationManager.AppSettings["AdminEmail"], "Akiva Project");
             var toEmail = new MailAddress("ashapiro14a@gmail.com");
-            string subject = "Your Akiva Project account was successfully created!<br>";
+            string subject = "Your Akiva Project account was successfully created!";
 
             string body =   "<br/><br/>Your Akiva Project account was" +
                             " successfully created. Please click on the below link to verify your account" +
