@@ -6,13 +6,6 @@ using System.ComponentModel.DataAnnotations;
 //namespace RegistrationAndLogin.Models.Extended
 namespace RegistrationAndLogin.Models
 {
-    //[MetadataType(typeof(UserMetadata))]
-    //public partial class User
-    //{
-    //    public string ConfirmPassword { get; set; }
-    //}
-
-    //    public class UserMetadata
 
     public enum Gender
     {
