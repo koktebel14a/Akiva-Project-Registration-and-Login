@@ -95,8 +95,8 @@ namespace RegistrationAndLogin.Controllers
             return View(user);
         }
 
-        //Verify Account
-        // called when user acts on confirmation email
+        //Verify Account  
+
         [HttpGet]
         public ActionResult VerifyAccount(string playerID)
         {
@@ -130,11 +130,6 @@ namespace RegistrationAndLogin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserLogin login, string ReturnUrl = "")
         {
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
             User tempUser = new User();
             tempUser.EmailID = login.EmailID;
             tempUser.UserName = null;

@@ -8,11 +8,11 @@ namespace RegistrationAndLogin.Models
 {
     public class UserLogin
     {
-        [Display(Name = "Email or username")]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Email/username is required")]
+        [Display(Name = "Email")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Email required")]
         public string EmailID { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Password is required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Password required")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
