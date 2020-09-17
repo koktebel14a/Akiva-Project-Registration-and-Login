@@ -51,8 +51,8 @@ namespace RegistrationAndLogin.Controllers
                 #endregion
 
                 #region  Password Hashing 
-                user.Password = Crypto.Hash(user.Password);
-                user.ConfirmPassword = Crypto.Hash(user.ConfirmPassword); //
+                //user.Password = Crypto.Hash(user.Password);
+                //user.ConfirmPassword = Crypto.Hash(user.ConfirmPassword); 
                 #endregion
                 user.IsEmailVerified = false;
 
@@ -68,6 +68,14 @@ namespace RegistrationAndLogin.Controllers
 
                 int dbIndex = InsertPlayerInDB(user);
 
+                //// we need to login user to set user data
+                //if (!PlayFabManager.GetInstance.LoginWithEmail(user))
+                //{
+                //    ViewBag.Message = "There was a problem creating your account, please try again later";
+                //    ViewBag.Status = false;
+                //    return View(user);
+                //}
+                // update user data
                 Dictionary<string, string> data = new Dictionary<string, string>() {
                                                                 {"activationCode", user.ActivationCode.ToString()},
                                                                 {"emailVerified", "0"},
@@ -77,7 +85,7 @@ namespace RegistrationAndLogin.Controllers
 
                 #endregion
 
-//                SendVerificationLinkEmail(user.EmailID, user.ActivationCode.ToString());
+                //                SendVerificationLinkEmail(user.EmailID, user.ActivationCode.ToString());
                 SendVerificationLinkEmail(user.EmailID, status.PlayFabId);
                 
 
@@ -98,16 +106,28 @@ namespace RegistrationAndLogin.Controllers
         //Verify Account  
 
         [HttpGet]
-        public ActionResult VerifyAccount(string playerID)
+        public ActionResult VerifyAccount(string id)
         {
             bool Status = false;
+            string message = "There was a problem creating your account, please try again later";
 
-            //update emailVerified flag
-
-            Status= PlayFabManager.GetInstance.UpdateUserData(new Dictionary<string, string>() {
-                                                    {"emailVerified", "1"},
-                                                });
+            Dictionary <string, PlayFab.ClientModels.UserDataRecord> dictionary = 
+                            PlayFabManager.GetInstance.GetUserDataByPlayFabId(id);
+            if (dictionary != null)
+            {
+                if (dictionary.ContainsKey("emailVerified"))
+                {
+                    string emailVerified = dictionary["emailVerified"].Value;
+                    if (emailVerified == "0")
+                    {
+                        Status = PlayFabManager.GetInstance.UpdateUserData(
+                                                                          new Dictionary<string, string>() {{"emailVerified", "1"},
+                                                                          });
+                    }
+                }
+            }
             ViewBag.Status = Status;
+            ViewBag.Message = message;
             return View();
         }
 
@@ -133,6 +153,7 @@ namespace RegistrationAndLogin.Controllers
             User tempUser = new User();
             tempUser.EmailID = login.EmailID;
             tempUser.UserName = null;
+            tempUser.Password = login.Password;
 
             string message = "";
 
