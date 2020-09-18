@@ -111,20 +111,12 @@ namespace RegistrationAndLogin.Controllers
             bool Status = false;
             string message = "There was a problem creating your account, please try again later";
 
-            Dictionary <string, PlayFab.ClientModels.UserDataRecord> dictionary = 
-                            PlayFabManager.GetInstance.GetUserDataByPlayFabId(id);
-            if (dictionary != null)
+            string emailVerified = PlayFabManager.GetInstance.GetAccountEmailVerifiedStatus(id); 
+            if (emailVerified != null && emailVerified=="0")
             {
-                if (dictionary.ContainsKey("emailVerified"))
-                {
-                    string emailVerified = dictionary["emailVerified"].Value;
-                    if (emailVerified == "0")
-                    {
-                        Status = PlayFabManager.GetInstance.UpdateUserData(
-                                                                          new Dictionary<string, string>() {{"emailVerified", "1"},
-                                                                          });
-                    }
-                }
+                Status = PlayFabManager.GetInstance.UpdateUserData(
+                                                  new Dictionary<string, string>() {{"emailVerified", "1"},
+                                                  });
             }
             ViewBag.Status = Status;
             ViewBag.Message = message;
@@ -156,31 +148,35 @@ namespace RegistrationAndLogin.Controllers
             tempUser.Password = login.Password;
 
             string message = "";
+            string playFabId = PlayFabManager.GetInstance.LoginWithEmail(tempUser);
 
-            if (UserExists(tempUser))
+            if (playFabId != null)
             {
                 // check if account was verified
-                bool emailVerified = PlayFabManager.GetInstance.GetAccountEmailVerifiedStatus(tempUser);
-
-
-
-
-                int timeout = login.RememberMe ? 525600 : 20; // 525600 min = 1 year
-                var ticket = new FormsAuthenticationTicket(login.EmailID, login.RememberMe, timeout);
-                string encrypted = FormsAuthentication.Encrypt(ticket);
-                var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encrypted);
-                cookie.Expires = DateTime.Now.AddMinutes(timeout);
-                cookie.HttpOnly = true;
-                Response.Cookies.Add(cookie);
-
-
-                if (Url.IsLocalUrl(ReturnUrl))
+                string emailVerified = PlayFabManager.GetInstance.GetAccountEmailVerifiedStatus(playFabId);
+                if (emailVerified != null && emailVerified == "1")
                 {
-                    return Redirect(ReturnUrl);
+                    int timeout = login.RememberMe ? 525600 : 20; // 525600 min = 1 year
+                    var ticket = new FormsAuthenticationTicket(login.EmailID, login.RememberMe, timeout);
+                    string encrypted = FormsAuthentication.Encrypt(ticket);
+                    var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encrypted);
+                    cookie.Expires = DateTime.Now.AddMinutes(timeout);
+                    cookie.HttpOnly = true;
+                    Response.Cookies.Add(cookie);
+
+
+                    if (Url.IsLocalUrl(ReturnUrl))
+                    {
+                        return Redirect(ReturnUrl);
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
                 }
                 else
                 {
-                    return RedirectToAction("Index", "Home");
+                    message = "Your account was not verified.  Please check your email and verify account";
                 }
             }
            else

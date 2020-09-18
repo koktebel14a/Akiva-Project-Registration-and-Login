@@ -122,11 +122,10 @@ namespace RegistrationAndLogin.Models.Extended
             return status;
         }
 
-        private bool OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
+        private string OnLoginComplete(Task<PlayFabResult<LoginResult>> taskResult)
         {
             var apiError = taskResult.Result.Error;
             var apiResult = taskResult.Result.Result;
-            bool retVal = true;
 
             if (apiError != null)
             {
@@ -135,9 +134,9 @@ namespace RegistrationAndLogin.Models.Extended
                 Console.WriteLine("PlayFab LoginWithCustomIDAsync failed.  :(");
                 Console.WriteLine(PlayFabUtil.GenerateErrorReport(apiError));
                 Console.ForegroundColor = ConsoleColor.Gray; // Reset to normal  
-                retVal = false;
+                return null;
             }
-            return retVal;
+            return apiResult.PlayFabId;
         }
 
         public string FindUserByEmail(string email)
@@ -213,36 +212,21 @@ namespace RegistrationAndLogin.Models.Extended
             return OnGetAccountInfoRequestComplete(taskResult);
         }
 
-        public bool GetAccountEmailVerifiedStatus(User user)
+        public string GetAccountEmailVerifiedStatus(string playFabId)
         {
-            // we need to login user to set user data
-            if (!PlayFabManager.GetInstance.LoginWithEmail(user))
+            string retStatus = null;
+
+            Dictionary<string, PlayFab.ClientModels.UserDataRecord> dictionary = GetUserDataByPlayFabId(playFabId);
+
+            if (dictionary != null)
             {
-                return false;
+                if (dictionary.ContainsKey("emailVerified"))
+                {
+                    retStatus = dictionary["emailVerified"].Value;
+                }
             }
 
-
-            var accountInfoRequest = new GetAccountInfoRequest();
-
-            if (user.EmailID.Contains('@'))
-            {
-                accountInfoRequest.Email = user.EmailID;
-                accountInfoRequest.Username = user.UserName;
-
-            }
-            else
-            {
-                accountInfoRequest.Username = user.EmailID;
-            }
-
-
-            return true;
-            //string verified = "";
-            //Dictionary<string, string> data = new Dictionary<string, string>() {
-            //                                                    {"emailVerified", "0"},
-            //                                                };
-            //var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest, verified, data);
-            //return OnGetAccountInfoRequestComplete(taskResult);
+            return retStatus;
         }
 
         private static bool OnGetAccountInfoRequestComplete(Task<PlayFabResult<GetAccountInfoResult>> taskResult)
@@ -268,7 +252,7 @@ namespace RegistrationAndLogin.Models.Extended
             return retVal;
         }
 
-        public bool LoginWithEmail(User user)
+        public string LoginWithEmail(User user)
         {
             LoginWithEmailAddressRequest loginRequest = new LoginWithEmailAddressRequest()
             {
@@ -277,8 +261,7 @@ namespace RegistrationAndLogin.Models.Extended
                 Password = user.Password
             };
             var loginTask = PlayFabClientAPI.LoginWithEmailAddressAsync(loginRequest);
-            bool loginResult = OnLoginComplete(loginTask);
-            return loginResult;
+            return OnLoginComplete(loginTask);
         }
 
         public bool LogOut(User user)
