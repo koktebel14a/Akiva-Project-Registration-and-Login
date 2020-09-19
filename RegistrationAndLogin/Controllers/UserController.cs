@@ -61,7 +61,14 @@ namespace RegistrationAndLogin.Controllers
                 PlayFabStatus status = playFabManager.RegisterUser(user);
                 if (status.PlayFabId == null)
                 {
-                    ViewBag.Message = "There was a problem creating your account, please try again later";
+                    if (status.ErrorDetails == null)
+                    {
+                        ViewBag.Message = "There was a problem creating your account, please try again later";
+                    }
+                    else
+                    {
+                        ViewBag.Message = status.ErrorDetails["Error"];
+                    }
                     ViewBag.Status = false;
                     return View(user);
                 }
@@ -85,10 +92,8 @@ namespace RegistrationAndLogin.Controllers
 
                 #endregion
 
-                //                SendVerificationLinkEmail(user.EmailID, user.ActivationCode.ToString());
                 SendVerificationLinkEmail(user.EmailID, status.PlayFabId);
                 
-
                 message = "Registration successfull! Account activation link " +
                     " has been sent to your email: " + user.EmailID;
                 Status = true;

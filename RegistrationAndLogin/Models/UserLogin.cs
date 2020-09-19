@@ -10,7 +10,7 @@ namespace RegistrationAndLogin.Models
     {
         [Display(Name = "Email")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required")]
-        [RegularExpression(@"^[a-z0-9_\\+-]+(\\.[a-z0-9_\\+-]+)*@[a-z0-9-]+(\\.[a-z0-9]+)*\\.([a-z]{2,4})$", ErrorMessage = "Invalid email format")]
+//        [RegularExpression(@"^[a-z0-9_\\+-]+(\\.[a-z0-9_\\+-]+)*@[a-z0-9-]+(\\.[a-z0-9]+)*\\.([a-z]{2,4})$", ErrorMessage = "Invalid email format")]
 
         public string EmailID { get; set; }
 

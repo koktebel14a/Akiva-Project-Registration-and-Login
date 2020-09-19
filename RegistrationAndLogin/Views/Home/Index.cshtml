@@ -1,8 +1,8 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Welcome to Akiva Project!";
 }
-<h2>Index</h2>
-Welcome @HttpContext.Current.User.Identity.Name
+<h2>Welcome to Akiva Project!</h2>
+Logged in as @HttpContext.Current.User.Identity.Name
 <p></p>
 @if (Request.IsAuthenticated)
 {

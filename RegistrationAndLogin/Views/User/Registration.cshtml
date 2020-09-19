@@ -118,7 +118,7 @@ else
                 </div>
             </div>
         </div>
-        if (ViewBag.Message == "Sorry, this email already exists")
+        if (ViewBag.Message != null)
         {
             <div class="alert alert-danger">
                 <strong>@ViewBag.Message</strong>
