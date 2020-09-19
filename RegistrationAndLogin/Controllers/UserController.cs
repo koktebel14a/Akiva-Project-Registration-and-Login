@@ -142,6 +142,12 @@ namespace RegistrationAndLogin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserLogin login, string ReturnUrl = "")
         {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Status = false;
+                return View();
+            }
+            
             User tempUser = new User();
             tempUser.EmailID = login.EmailID;
             tempUser.UserName = null;

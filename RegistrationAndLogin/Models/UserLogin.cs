@@ -9,10 +9,12 @@ namespace RegistrationAndLogin.Models
     public class UserLogin
     {
         [Display(Name = "Email")]
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Email required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required")]
+        [RegularExpression(@"^[a-z0-9_\\+-]+(\\.[a-z0-9_\\+-]+)*@[a-z0-9-]+(\\.[a-z0-9]+)*\\.([a-z]{2,4})$", ErrorMessage = "Invalid email format")]
+
         public string EmailID { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Password required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
