@@ -103,7 +103,7 @@ namespace RegistrationAndLogin.Models.Extended
             if (apiError != null)
             {
                 status.PlayFabId = null;
-                status.ErrorDetails = taskResult.Result.Error.ErrorDetails;
+                status.ErrorDetails = apiError.ErrorMessage;
 
                 // add logging
                 Console.ForegroundColor = ConsoleColor.Red; // Make the error more visible

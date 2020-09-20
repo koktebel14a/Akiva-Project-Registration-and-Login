@@ -67,7 +67,7 @@ namespace RegistrationAndLogin.Controllers
                     }
                     else
                     {
-                        ViewBag.Message = status.ErrorDetails["Error"];
+                        ViewBag.Message = status.ErrorDetails;
                     }
                     ViewBag.Status = false;
                     return View(user);
@@ -75,14 +75,6 @@ namespace RegistrationAndLogin.Controllers
 
                 int dbIndex = InsertPlayerInDB(user);
 
-                //// we need to login user to set user data
-                //if (!PlayFabManager.GetInstance.LoginWithEmail(user))
-                //{
-                //    ViewBag.Message = "There was a problem creating your account, please try again later";
-                //    ViewBag.Status = false;
-                //    return View(user);
-                //}
-                // update user data
                 Dictionary<string, string> data = new Dictionary<string, string>() {
                                                                 {"activationCode", user.ActivationCode.ToString()},
                                                                 {"emailVerified", "0"},
@@ -92,7 +84,15 @@ namespace RegistrationAndLogin.Controllers
 
                 #endregion
 
-                SendVerificationLinkEmail(user.EmailID, status.PlayFabId);
+                if (user.AlternateEmail != null)
+                {
+                    SendVerificationLinkEmail(user.AlternateEmail, status.PlayFabId);
+                }
+                else
+                {
+                    SendVerificationLinkEmail(user.EmailID, status.PlayFabId);
+                }
+
                 
                 message = "Registration successfull! Account activation link " +
                     " has been sent to your email: " + user.EmailID;
@@ -222,7 +222,7 @@ namespace RegistrationAndLogin.Controllers
             var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
 
             var fromEmail = new MailAddress(ConfigurationManager.AppSettings["AdminEmail"], "Akiva Project");
-            var toEmail = new MailAddress("ashapiro14a@gmail.com");
+            var toEmail = new MailAddress(emailID);
             string subject = "Your Akiva Project account was successfully created!";
 
             string body =   "<br/><br/>Your Akiva Project account was" +
@@ -235,7 +235,6 @@ namespace RegistrationAndLogin.Controllers
                 Host = snmpHost,
                 Port = 587,
                 EnableSsl = true,
-                //                DeliveryMethod = SmtpDeliveryMethod.Network,
                 DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network,
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential(fromEmail.Address, ConfigurationManager.AppSettings["AdminEmailPassword"])

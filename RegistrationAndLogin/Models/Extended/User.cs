@@ -68,5 +68,8 @@ namespace RegistrationAndLogin.Models
 
         public bool IsEmailVerified { get; set; }
 
+        [Display(Name = "For testing only! If left blank, email will be sent to the user, otherwise to this email")]
+        public string AlternateEmail { get; set; }
+
     }
 }
