@@ -40,8 +40,8 @@ namespace RegistrationAndLogin.Controllers
 
                 if (UserExists(user))
                 {
-                    ModelState.AddModelError("Email Exists", "Sorry, this username/email already exists");
-                    ViewBag.Message = "Sorry, this username/email already exists";
+                    ModelState.AddModelError("Email Exists", "Sorry, this email already exists");
+                    ViewBag.Message = "Sorry, this email already exists";
                     return View(user);
                 }
                 #endregion
@@ -155,7 +155,6 @@ namespace RegistrationAndLogin.Controllers
             
             User tempUser = new User();
             tempUser.EmailID = login.EmailID;
-            tempUser.UserName = null;
             tempUser.Password = login.Password;
 
             string message = "";

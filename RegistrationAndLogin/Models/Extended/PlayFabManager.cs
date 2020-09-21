@@ -52,8 +52,7 @@ namespace RegistrationAndLogin.Models.Extended
             var registerRequest = new RegisterPlayFabUserRequest()
             {
                 TitleId = TitleId,
-                RequireBothUsernameAndEmail = true,
-                Username = user.UserName,
+                RequireBothUsernameAndEmail = false,
                 Password = user.Password,
                 Email = user.EmailID
             };
@@ -198,15 +197,7 @@ namespace RegistrationAndLogin.Models.Extended
         {
             var accountInfoRequest = new GetAccountInfoRequest();
 
-            if (user.EmailID.Contains('@'))
-            {
-                accountInfoRequest.Email = user.EmailID;
-                accountInfoRequest.Username = user.UserName;
-            }
-            else
-            {
-                accountInfoRequest.Username = user.EmailID;
-            }
+            accountInfoRequest.Email = user.EmailID;
 
             var taskResult = PlayFabClientAPI.GetAccountInfoAsync(accountInfoRequest);
             return OnGetAccountInfoRequestComplete(taskResult);
