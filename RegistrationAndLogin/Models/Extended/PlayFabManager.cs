@@ -257,6 +257,7 @@ namespace RegistrationAndLogin.Models.Extended
 
         public bool LogOut(User user)
         {
+            PlayFabClientAPI.ForgetAllCredentials();
             return true;
         }
 
